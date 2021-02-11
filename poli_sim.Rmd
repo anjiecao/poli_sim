@@ -32,8 +32,26 @@ At the very beginning of each sequence, the ideal learner expects the target to 
 P(p∣ ) = Dir(p; k) (1)
 where all elements of  are equal to one,  = [1,1,1,1]. In this case, the parameter  determines prior expectations. If there is an imbal- ance between the values of  (e. g. ,  = [100,1,1,1]), this means that the model is biased into thinking that the target is more likely to ap- pear in the one location (p1 in the example) rather than the others.
 
+Dirichlet-multinomial is the same thing as the beta binomial. 
+
+Play with beta-binomial:
+
+```{r}
+x = seq(0,1,.01)
+# shape parameters are the number of counts
+plot(x, dbeta(x, 200,400))
+
+```
+
+
+```{r}
+prior <- c(1,1,1,1)
+```
+
+
 > Conversely, when the numbers are equal, the ideal learner has no biases toward any location. Moreover, high numbers indicate that the model has strong expectations, while low numbers indicate that the model will quickly change its expectations when presented with new evidence. Thus, specifying  = [1,1,1,1], we are defining a weak uniform prior distribution. In other words, the model has no bias toward any location but is ready to change these expectations if pre- sented with contradicting evidence.
-At every trial, the prior distribution is updated given the obser- vation of the new event x from the set Xj. The posterior distribution of such update is given by
+At every trial, the prior distribution is updated given the obser- vation of the new event x from the set Xj. 
+>  The posterior distribution of such update is given by
 P(p∣Xj,)=Dir(pj;njk+k) (2)
 j
 where nk refers to the number of outcomes of type k observed up
@@ -41,6 +59,24 @@ until the trial j. As a practical example, imagine that, at trial 1, the model o
 p(x =k∣X ,)=─j−1+K (3)
 >In words, how likely the target is to appear in a certain corner is given by the total number of times it appeared in that corner, plus one (the value of ), divided by the total number of observations, plus 4 (the sum of the values of ). This updating rule implies that as evidence accumulates, new evidence will weigh less. Given that our sequences are stationary (i.e., the most likely location does not change within the same sequence), this assumption is justified for the current task.
 At every trial j, the posterior Dirichlet distribution of trial j − 1 becomes the new prior distribution. The new prior is updated using (2) and the probabilities estimates are computed using (3). When infants look away and a new sequence is played, the prior is set back to (1). This means that we assume that when infants start looking to a new sequence, they consider it as independent of the previous ones. Previous research in adults demonstrated the suitability of this assumption (24).
+
+```{r}
+n <- 15
+model <- tibble(trials = 0:n, 
+                bin1 = 0, 
+                bin2 = 0, 
+                bin3 = 0, 
+                bin4 = 0)
+
+model[1,2:5] <- as.list(prior)
+
+for (i in 1:length(sample_seq)) {
+  model[model$trials == i, 2:5] <- model[model$trials == i-1, 2:5]
+  model[model$trials == i, sample_seq[i]+1] <-  
+    model[model$trials == i-1, sample_seq[i]+1] + 1
+}
+```
+
 
 
 # Measures

@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1613571770447.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "D6E65059",
+    "lastKnownWriteTime" : 1613663937,
+    "last_content_update" : 1613663937621,
+    "path" : "~/Desktop/projects/poli_sim/poli_sim.Rmd",
+    "project_path" : "poli_sim.Rmd",
+    "properties" : {
+        "cursorPosition" : "166,0",
+        "last_setup_crc32" : "FBC6AB765ac90772",
+        "scrollLine" : "159"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

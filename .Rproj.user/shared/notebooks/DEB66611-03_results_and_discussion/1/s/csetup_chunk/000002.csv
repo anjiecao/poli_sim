@@ -1,0 +1,113 @@
+"0","library(cowplot)"
+"2","
+********************************************************
+"
+"2","Note: As of version 1.0.0, cowplot does not change the
+"
+"2","  default ggplot2 theme anymore. To recover the previous
+"
+"2","  behavior, execute:
+  theme_set(theme_cowplot())
+"
+"2","********************************************************
+
+"
+"0","library(tidyverse)"
+"0","library(here)"
+"2","here() starts at /Users/caoanjie/Desktop/projects/CCRR_analysis
+"
+"0","library(jsonlite)"
+"2","
+Attaching package: ‘jsonlite’
+
+"
+"2","The following object is masked from ‘package:purrr’:
+
+    flatten
+
+"
+"0","library(kableExtra)"
+"2","Registered S3 methods overwritten by 'htmltools':
+  method               from         
+  print.html           tools:rstudio
+  print.shiny.tag      tools:rstudio
+  print.shiny.tag.list tools:rstudio
+"
+"2","
+Attaching package: ‘kableExtra’
+
+"
+"2","The following object is masked from ‘package:dplyr’:
+
+    group_rows
+
+"
+"0","library(DT)"
+"2","Registered S3 method overwritten by 'htmlwidgets':
+  method           from         
+  print.htmlwidget tools:rstudio
+"
+"0","library(Dict)"
+"0","library(ggforce)"
+"0","library(ggimage)"
+"2","
+Attaching package: ‘ggimage’
+
+"
+"2","The following object is masked from ‘package:cowplot’:
+
+    theme_nothing
+
+"
+"0","library(tidyboot)"
+"0","library(lme4)"
+"2","Loading required package: Matrix
+"
+"2","
+Attaching package: ‘Matrix’
+
+"
+"2","The following objects are masked from ‘package:tidyr’:
+
+    expand, pack, unpack
+
+"
+"0","library(raincloudplots)"
+"0","library(RColorBrewer)"
+"0","library(reshape2)"
+"2","
+Attaching package: ‘reshape2’
+
+"
+"2","The following object is masked from ‘package:tidyr’:
+
+    smiths
+
+"
+"0","source(here(""writeups/CCRR_CogSci/03_scripts/R_rainclouds.R""))"
+"0",""
+"0","PROCESSED_MAIN_PATH <- here(""writeups/CCRR_CogSci/cogsci_data/tidy_main.csv"")"
+"0","tidy_d <- read_csv(PROCESSED_MAIN_PATH)"
+"2","Missing column names filled in: 'X1' [1]"
+"2","Parsed with column specification:
+cols(
+  X1 = [32mcol_double()[39m,
+  subject = [31mcol_character()[39m,
+  culture = [31mcol_character()[39m,
+  task_name = [31mcol_character()[39m,
+  task_info = [31mcol_character()[39m,
+  trial_info = [32mcol_double()[39m,
+  resp_type = [31mcol_character()[39m,
+  resp = [32mcol_double()[39m
+)
+"
+"2","16937 parsing failures.
+ row        col expected actual                                                                                            file
+8705 trial_info a double   RMTS '/Users/caoanjie/Desktop/projects/CCRR_analysis/writeups/CCRR_CogSci/cogsci_data/tidy_main.csv'
+8706 trial_info a double   RMTS '/Users/caoanjie/Desktop/projects/CCRR_analysis/writeups/CCRR_CogSci/cogsci_data/tidy_main.csv'
+8707 trial_info a double   RMTS '/Users/caoanjie/Desktop/projects/CCRR_analysis/writeups/CCRR_CogSci/cogsci_data/tidy_main.csv'
+8708 trial_info a double   RMTS '/Users/caoanjie/Desktop/projects/CCRR_analysis/writeups/CCRR_CogSci/cogsci_data/tidy_main.csv'
+8709 trial_info a double   RMTS '/Users/caoanjie/Desktop/projects/CCRR_analysis/writeups/CCRR_CogSci/cogsci_data/tidy_main.csv'
+.... .......... ........ ...... ...............................................................................................
+See problems(...) for more details.
+"

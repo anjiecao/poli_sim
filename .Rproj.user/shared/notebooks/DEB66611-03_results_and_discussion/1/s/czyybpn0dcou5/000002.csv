@@ -1,0 +1,12 @@
+"0","raven_summary <- df.main %>% "
+"0","  filter(task_name == ""RV"") %>% "
+"0","  group_by(culture, subject) %>% "
+"0","  summarise("
+"0","    accuracy = mean(resp)"
+"0","  ) %>% "
+"0","  group_by(culture) %>% "
+"0","  summarise("
+"0","    culture_mean = round(mean(accuracy),2)"
+"0","  )"
+"2","Error in eval(lhs, parent, parent) : object 'df.main' not found
+"

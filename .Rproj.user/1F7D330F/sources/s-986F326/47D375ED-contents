@@ -1,0 +1,808 @@
+---
+title: "02_visualization"
+author: "anjie & gal"
+date: "2/16/2021"
+html_document:
+    toc: true
+    toc_float: true
+    number_sections: no
+---
+```{r message=FALSE, warning=FALSE}
+
+library(here)
+library(tidyverse)
+library(stringr) # for parsing r string 
+library(jsonlite) # for parsing r string 
+library(ggiraphExtra)
+library(plotrix)
+```
+
+```{r read_data, message=FALSE, warning=FALSE}
+RT_data <- read_csv(here('data/processed_data/trimmed_RTdata.csv'))
+pref_data <- read_csv(here('data/processed_data/trimmed_prefdata.csv'))
+similarity_data <- read_csv(here('data/processed_data/trimmed_similaritydata.csv'))
+complexity_data <- read_csv(here('data/processed_data/trimmed_complexitydata.csv'))
+demog_data <- read_csv(here('data/processed_data/trimmed_demogdata.csv'))
+```
+
+# Descriptive Info 
+
+N = 167
+
+## sample size 
+
+```{r}
+RT_data %>% 
+  distinct(subject) %>% 
+  count()
+```
+
+## demographic {.tabset}
+
+### age 
+
+```{r}
+demog_data %>% 
+  ggplot(aes(x = age)) + 
+  geom_histogram()
+```
+
+### ethnicity 
+
+```{r}
+demog_data %>% 
+  ggplot(aes(x = ethnicity)) + 
+  geom_histogram(stat = "count") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+### Gender 
+
+```{r}
+demog_data %>% 
+  ggplot(aes(x = gender)) + 
+  geom_histogram(stat = "count") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+### education 
+```{r}
+demog_data %>% 
+  ggplot(aes(x = education)) + 
+  geom_histogram(stat = "count") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+# RT raw {.tabset}
+
+## overall 
+```{r}
+RT_data %>% 
+   ggplot(aes(x = rt)) + 
+  geom_histogram() + 
+  scale_x_log10() 
+```
+
+## by trial type 
+```{r}
+RT_data %>% 
+   ggplot(aes(x = rt)) + 
+  geom_histogram() + 
+  scale_x_log10() + 
+  facet_wrap(~trial_type)
+```
+
+## trial type and block 
+```{r}
+RT_data %>% 
+   ggplot(aes(x = rt)) + 
+  geom_histogram() + 
+  scale_x_log10() + 
+  facet_grid(block_type~trial_type)
+```
+
+
+## by trial complexity 
+```{r}
+RT_data %>% 
+  ggplot(aes(x = rt)) + 
+  geom_histogram() + 
+  scale_x_log10() + 
+  facet_wrap(~trial_complexity)
+```
+
+## by block type 
+```{r}
+RT_data %>% 
+   ggplot(aes(x = rt)) + 
+  geom_histogram() + 
+  scale_x_log10() + 
+  facet_wrap(~block_type)
+```
+
+
+
+## by item id 
+### simple 
+```{r}
+RT_data %>% 
+  filter(trial_complexity == "simple") %>% 
+   ggplot(aes(x = rt)) + 
+  geom_histogram() + 
+  scale_x_log10() + 
+  facet_wrap(~item_id)
+```
+
+### complex 
+```{r}
+RT_data %>% 
+  filter(trial_complexity == "complex") %>% 
+   ggplot(aes(x = rt)) + 
+  geom_histogram() + 
+  scale_x_log10() + 
+  facet_wrap(~item_id)
+```
+
+# RT basic plotting 
+
+## normal 
+
+### across block, nonlog 
+
+```{r}
+ggplot(RT_data, aes(x=block_number, y=rt, colour=item_type)) + 
+  stat_summary(fun.data = "mean_cl_boot") + 
+  geom_smooth(method = "lm")
+  
+```
+
+
+### across block, log 
+```{r}
+ggplot(RT_data, aes(x=block_number, y=log(rt), colour=item_type)) + 
+  stat_summary(fun.data = "mean_cl_boot") + 
+  geom_smooth(method = "lm")
+  
+```
+
+
+
+### separate deviant by similarity {.tabset}
+
+#### by hand 
+```{r}
+
+summarized <- RT_data %>%
+group_by(trial_number, item_type, trial_complexity) %>% 
+summarise(meanRT=mean(rt), maxRT=max(rt), minRT=min(rt), medianRT=median(rt), Std=sd(rt), SE = std.error(rt), n = n())
+
+
+ggplot(summarized, aes(x=trial_number, y=medianRT, colour=item_type)) + geom_line() + geom_errorbar(aes(ymin=medianRT-SE, ymax=medianRT+SE),
+                width=0.8, size = 0.8, position = position_dodge(width = 0.2), show.legend = FALSE, alpha = 0.8) +
+  geom_point(position = position_dodge(width = 0.2), size=2.5) + geom_line(size=1.2, position = position_dodge(width = 0.2)) + ylab("RT [msec]") +
+  theme_gray()  + theme(
+    panel.grid.minor = element_blank(), 
+    plot.title = element_text(hjust=0.5, size=22, face="bold"),
+    axis.title.x = element_text(size=18, face='bold'),
+    axis.title.y = element_text(size=18, face='bold'),
+    axis.text = element_text(size=15),
+    legend.title = element_blank(),
+    legend.text = element_text(size=14, face='bold'),
+    strip.text = element_text(size=17, face='bold'),
+    legend.key.size = unit(2.5, 'lines')) + 
+  scale_x_continuous(name="Trial Number", breaks =c(2,4,6,8)) +
+  facet_grid(~trial_complexity)
+```
+
+#### tidyboot
+
+```{r}
+ggplot(RT_data, aes(x=trial_number, y=log(rt), colour=item_type)) + 
+  stat_summary(fun.data = "mean_cl_boot") + 
+  facet_grid(~trial_complexity)
+```
+
+
+
+### separate by first half/second half
+
+#### by hand 
+```{r}
+
+summarized <- RT_data %>%
+group_by(trial_number, item_type, trial_complexity, half) %>% 
+summarise(meanRT=mean(rt), maxRT=max(rt), minRT=min(rt), medianRT=median(rt), Std=sd(rt), SE = std.error(rt), n = n())
+
+
+ggplot(summarized, aes(x=trial_number, y=medianRT, colour=item_type)) + geom_line() + geom_errorbar(aes(ymin=medianRT-SE, ymax=medianRT+SE),
+                width=0.8, size = 0.8, position = position_dodge(width = 0.2), show.legend = FALSE, alpha = 0.8) +
+  geom_point(position = position_dodge(width = 0.2), size=2.5) + geom_line(size=1.2, position = position_dodge(width = 0.2)) + ylab("RT [msec]") +
+  theme_gray()  + theme(
+    panel.grid.minor = element_blank(), 
+    plot.title = element_text(hjust=0.5, size=22, face="bold"),
+    axis.title.x = element_text(size=18, face='bold'),
+    axis.title.y = element_text(size=18, face='bold'),
+    axis.text = element_text(size=15),
+    legend.title = element_blank(),
+    legend.text = element_text(size=14, face='bold'),
+    strip.text = element_text(size=17, face='bold'),
+    legend.key.size = unit(2.5, 'lines')) + 
+  scale_x_continuous(name="Trial Number", breaks =c(2,4,6,8)) +
+  facet_grid(half~trial_complexity)
+```
+
+#### tidyboot 
+
+```{r}
+ggplot(RT_data, aes(x=trial_number, y=rt, colour=item_type)) + 
+  stat_summary(fun.data = "mean_cl_boot") + 
+  facet_grid(half~trial_complexity)
+```
+
+#### log transformed 
+```{r}
+ggplot(RT_data, aes(x=trial_number, y=log(rt), colour=item_type)) + 
+  stat_summary(fun.data = "mean_cl_boot") + 
+  facet_grid(half~trial_complexity)
+```
+
+```{r}
+summarized <- RT_data %>%
+group_by(trial_number, item_type, trial_complexity, half) %>% 
+summarise(meanRT=mean(log(rt)), maxRT=max(log(rt)), minRT=min(log(rt)), medianRT=median(log(rt)), Std=sd(log(rt)), SE = std.error(log(rt)), n = n())
+
+
+ggplot(summarized, aes(x=trial_number, y=medianRT, colour=item_type)) + geom_line() + geom_errorbar(aes(ymin=medianRT-SE, ymax=medianRT+SE),
+                width=0.8, size = 0.8, position = position_dodge(width = 0.2), show.legend = FALSE, alpha = 0.8) +
+  geom_point(position = position_dodge(width = 0.2), size=2.5) + geom_line(size=1.2, position = position_dodge(width = 0.2)) + ylab("RT [msec]") +
+  theme_gray()  + theme(
+    panel.grid.minor = element_blank(), 
+    plot.title = element_text(hjust=0.5, size=22, face="bold"),
+    axis.title.x = element_text(size=18, face='bold'),
+    axis.title.y = element_text(size=18, face='bold'),
+    axis.text = element_text(size=15),
+    legend.title = element_blank(),
+    legend.text = element_text(size=14, face='bold'),
+    strip.text = element_text(size=17, face='bold'),
+    legend.key.size = unit(2.5, 'lines')) + 
+  scale_x_continuous(name="Trial Number", breaks =c(2,4,6,8)) +
+  facet_grid(half~trial_complexity)
+```
+
+
+### collapsed across similar/dissimilar deviant
+
+```{r}
+
+summarized <- RT_data %>%
+group_by(trial_number, trial_type, trial_complexity) %>% 
+summarise(meanRT=mean(rt), maxRT=max(rt), minRT=min(rt), medianRT=median(rt), Std=sd(rt), SE = std.error(rt), n = n())
+
+
+ggplot(summarized, aes(x=trial_number, y=medianRT, colour=trial_type)) + geom_line() + geom_errorbar(aes(ymin=medianRT-SE, ymax=medianRT+SE),
+                width=0.8, size = 0.8, position = position_dodge(width = 0.2), show.legend = FALSE, alpha = 0.8) +
+  geom_point(position = position_dodge(width = 0.2), size=2.5) + geom_line(size=1.2, position = position_dodge(width = 0.2)) + ylab("RT [msec]") +
+  theme_gray()  + theme(
+    panel.grid.minor = element_blank(), 
+    plot.title = element_text(hjust=0.5, size=22, face="bold"),
+    axis.title.x = element_text(size=18, face='bold'),
+    axis.title.y = element_text(size=18, face='bold'),
+    axis.text = element_text(size=15),
+    legend.title = element_blank(),
+    legend.text = element_text(size=14, face='bold'),
+    strip.text = element_text(size=17, face='bold'),
+    legend.key.size = unit(2.5, 'lines')) + 
+  scale_x_continuous(name="Trial Number", breaks =c(2,4,6,8)) +
+  facet_grid(~trial_complexity)
+```
+
+## log transformed 
+```{r}
+summarized_log <- RT_data %>%
+group_by(trial_number, item_type, trial_complexity) %>% 
+summarise(meanRT=mean(log(rt)), 
+          maxRT=max(log(rt)), 
+          minRT=min(log(rt)), 
+          medianRT=median(log(rt)), 
+          Std=sd(log(rt)), 
+          SE = std.error(log(rt)), 
+          n = n())
+
+
+ggplot(summarized_log, 
+       aes(x= trial_number, y=medianRT, colour=item_type)) + 
+  geom_line() + 
+  geom_errorbar(aes(ymin=medianRT-SE, 
+                    ymax=medianRT+SE),
+                width=0.8, size = 0.8, position = position_dodge(width = 0.2), 
+                show.legend = FALSE, alpha = 0.8) +
+  geom_point(position = position_dodge(width = 0.2), size=2.5) + 
+  geom_line(size=1.2, position = position_dodge(width = 0.2)) + 
+  ylab("log(RT) [msec]") +
+  theme_gray()  + theme(
+    panel.grid.minor = element_blank(), 
+    plot.title = element_text(hjust=0.5, size=15, face="bold"),
+    axis.title.x = element_text(size=18, face='bold'),
+    axis.title.y = element_text(size=18, face='bold'),
+    axis.text = element_text(size=15),
+    legend.title = element_blank(),
+    legend.text = element_text(size=14, face='bold'),
+    strip.text = element_text(size=8, face='bold'),
+    legend.key.size = unit(2.5, 'lines')) + 
+  scale_x_continuous(name="Trial Number", breaks =c(2,4,6,8)) +
+  facet_grid(item_type ~ trial_complexity)
+```
+
+## exploring function form 
+```{r}
+ggplot(RT_data, aes(x=trial_number, y=log(rt), colour=item_type)) + 
+  stat_summary(fun.data = "mean_cl_boot") + 
+  geom_smooth(method = "lm", 
+              formula = y ~ log(x))+ 
+  facet_grid(item_type~trial_complexity)
+```
+
+```{r}
+ggplot(RT_data, aes(x=trial_number, y=log(rt), colour=item_type)) + 
+  stat_summary(fun.data = "mean_cl_boot") + 
+  geom_smooth(method = "lm", 
+              formula = y ~ x)+ 
+  facet_grid(item_type~trial_complexity)
+```
+
+```{r}
+ggplot(RT_data, aes(x=trial_number, y=log(rt), colour=item_type)) + 
+  stat_summary(fun.data = "mean_cl_boot") + 
+  geom_smooth(method = "lm", 
+              formula = y ~ x^2)+ 
+  facet_grid(item_type~trial_complexity)
+```
+
+```{r}
+ggplot(RT_data, aes(x=trial_number, y=log(rt), colour=item_type)) + 
+  stat_summary(fun.data = "mean_cl_boot") + 
+  geom_smooth(method = "lm", 
+              formula = y ~ x^3)+ 
+  facet_grid(item_type~trial_complexity)
+```
+
+
+
+# group all trials together
+```{r}
+
+summarized_log <- RT_data %>%
+group_by(item_type, trial_complexity) %>% 
+summarise(meanRT=mean((rt)), 
+          maxRT=max((rt)), 
+          minRT=min((rt)), 
+          medianRT=median((rt)), 
+          Std=sd((rt)), 
+          SE = std.error((rt)), 
+          n = n())
+
+ggplot(summarized_log, 
+       aes(x = item_type, y=medianRT, colour=item_type)) + 
+  geom_line() + 
+  geom_errorbar(aes(ymin=medianRT-SE, 
+                    ymax=medianRT+SE),
+                width=0.8, size = 0.8, position = position_dodge(width = 0.2), 
+                show.legend = FALSE, alpha = 0.8) +
+  geom_point(position = position_dodge(width = 0.2), size=2.5) + 
+  geom_line(size=1.2, position = position_dodge(width = 0.2)) + 
+  ylab("RT [msec]") +
+  theme_gray()  + theme(
+    panel.grid.minor = element_blank(), 
+    plot.title = element_text(hjust=0.5, size=15, face="bold"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_text(size=18, face='bold'),
+    axis.text.x = element_blank(),
+    axis.text.y = element_text(size=15),
+    legend.title = element_blank(),
+    legend.text = element_text(size=14, face='bold'),
+    strip.text = element_text(size=8, face='bold'),
+    legend.key.size = unit(2.5, 'lines')) + 
+  facet_grid(~ trial_complexity)
+
+```
+
+
+# Preference test
+
+## raw {.tabset}
+
+### overall
+
+```{r}
+pref_data %>% 
+  ggplot(aes(x = stim_type_selected)) + 
+  geom_histogram(stat = "count")
+  
+```
+
+### by block type 
+
+```{r}
+pref_data %>% 
+  ggplot(aes(x = stim_type_selected)) + 
+  geom_histogram(stat = "count") + 
+  facet_wrap(~block_type)
+```
+
+### by block number 
+
+```{r}
+pref_data %>% 
+  ggplot(aes(x = stim_type_selected)) + 
+  geom_histogram(stat = "count") + 
+  facet_wrap(~block_number) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+## check participant pattern 
+```{r}
+pref_data %>% 
+  group_by(subject) %>% 
+  count(stim_type_selected) %>% 
+  filter(stim_type_selected == "novel") %>% 
+  mutate(percent_novel = n/20) %>% 
+  ggplot(aes(x = percent_novel)) +
+  geom_histogram(bins = 20)
+```
+
+
+
+## relationship with RT {.tabset}
+
+### overall 
+```{r}
+pref_data %>% 
+  ggplot(aes(x = stim_type_selected, 
+             y = log(trial_looking_time))) + 
+  geom_point(alpha = 0.05, 
+             position = position_jitter(width = 0.3)) + 
+   stat_summary(fun.data = "mean_cl_boot") 
+```
+
+### by block type 
+
+```{r}
+pref_data %>% 
+  ggplot(aes(x = stim_type_selected, 
+             y = log(trial_looking_time))) + 
+  geom_point(alpha = 0.05, 
+             position = position_jitter(width = 0.3)) + 
+   stat_summary(fun.data = "mean_cl_boot")  + 
+  facet_wrap(~block_type)
+```
+
+## RT and block num {.tabset}
+how long participants spent on the pref test 
+
+### by block type 
+```{r}
+pref_data %>% 
+  group_by(block_number, block_type) %>% 
+summarise(meanRT=mean(log(trial_looking_time)), 
+          maxRT=max(log(trial_looking_time)), 
+          minRT=min(log(trial_looking_time)), 
+          medianRT=median(log(trial_looking_time)), 
+          Std=sd(log(trial_looking_time)), 
+          SE = std.error(log(trial_looking_time)), 
+          n = n()) %>% 
+  ggplot( 
+       aes(x= block_number, y=medianRT, colour=block_type)) + 
+  geom_line() + 
+  geom_errorbar(aes(ymin=medianRT-SE, 
+                    ymax=medianRT+SE),
+                width=0.8, size = 0.8, position = position_dodge(width = 0.2), 
+                show.legend = FALSE, alpha = 0.8) +
+  geom_point(position = position_dodge(width = 0.2), size=2.5) + 
+  geom_line(size=1.2, position = position_dodge(width = 0.2)) + 
+  ylab("log(RT) [msec]") +
+  theme_gray()  + theme(
+    panel.grid.minor = element_blank(), 
+    plot.title = element_text(hjust=0.5, size=15, face="bold"),
+    axis.title.x = element_text(size=18, face='bold'),
+    axis.title.y = element_text(size=18, face='bold'),
+    axis.text = element_text(size=15),
+    legend.title = element_blank(),
+    legend.text = element_text(size=14, face='bold'),
+    strip.text = element_text(size=8, face='bold'),
+    legend.key.size = unit(2.5, 'lines')) + 
+  scale_x_continuous(name="Block Number") +
+  facet_wrap(~block_type) 
+```
+
+### by choice 
+
+```{r}
+pref_data %>% 
+  group_by(block_number, stim_type_selected) %>% 
+summarise(meanRT=mean(log(trial_looking_time)), 
+          maxRT=max(log(trial_looking_time)), 
+          minRT=min(log(trial_looking_time)), 
+          medianRT=median(log(trial_looking_time)), 
+          Std=sd(log(trial_looking_time)), 
+          SE = std.error(log(trial_looking_time)), 
+          n = n()) %>% 
+  ggplot( 
+       aes(x= block_number, y=medianRT, colour=stim_type_selected)) + 
+  geom_line() + 
+  geom_errorbar(aes(ymin=medianRT-SE, 
+                    ymax=medianRT+SE),
+                width=0.8, size = 0.8, position = position_dodge(width = 0.2), 
+                show.legend = FALSE, alpha = 0.8) +
+  geom_point(position = position_dodge(width = 0.2), size=2.5) + 
+  geom_line(size=1.2, position = position_dodge(width = 0.2)) + 
+  ylab("log(RT) [msec]") +
+  theme_gray()  + theme(
+    panel.grid.minor = element_blank(), 
+    plot.title = element_text(hjust=0.5, size=15, face="bold"),
+    axis.title.x = element_text(size=18, face='bold'),
+    axis.title.y = element_text(size=18, face='bold'),
+    axis.text = element_text(size=15),
+    legend.title = element_blank(),
+    legend.text = element_text(size=14, face='bold'),
+    strip.text = element_text(size=8, face='bold'),
+    legend.key.size = unit(2.5, 'lines')) + 
+  scale_x_continuous(name="Block Number") +
+  facet_wrap(~stim_type_selected) 
+```
+
+## preference and looking time curve 
+
+```{r}
+pref_temp <- pref_data %>% 
+  mutate(temp_id = paste(subject, block_number)) %>% 
+  select(temp_id, stim_type_selected)
+
+rt_temp <- RT_data %>% 
+  mutate(temp_id = paste(subject, block_number))
+
+RT_temp_df <- left_join(pref_temp, rt_temp, by = "temp_id")
+
+RT_temp_df %>% 
+  ggplot(aes(x = trial_number, y = log(rt))) + 
+  stat_summary(fun.data = "mean_cl_boot") + 
+  facet_wrap(~stim_type_selected) 
+```
+
+
+
+
+# Similarity ratings {.tabset}
+
+## Raw 
+
+```{r}
+similarity_data %>% 
+  ggplot(aes(x = rating))+ 
+  geom_histogram(bins = 30)
+```
+
+## by intuitive similarity 
+```{r}
+
+similarity_data <- similarity_data %>% 
+  mutate(
+    complexity = case_when(
+      grepl("complex", stimulus_left) | grepl("complex", stimulus_right) ~ "complex", 
+      grepl("simple", stimulus_right) | grepl("simple", stimulus_right) ~ "simple"
+    ), 
+    stimulus_left_number = as.numeric(str_extract(stimulus_left, "[[:digit:]]+")), 
+    stimulus_right_number = as.numeric(str_extract(stimulus_right, "[[:digit:]]+")), 
+    similarity = case_when(
+      stimulus_left_number == stimulus_right_number ~ "similar", 
+      TRUE ~ "dissimilar"
+    )
+  )
+
+similarity_data %>% 
+  ggplot(aes(x = similarity, y= rating)) + 
+  geom_point(alpha = 0.1, 
+             position = position_jitter(width = 0.3)) + 
+   stat_summary(fun.data = "mean_cl_boot") + 
+  facet_wrap(~complexity)
+```
+
+
+
+# Complexity Ratings {.tabset}
+## Raw 
+```{r}
+complexity_data %>% 
+  ggplot(aes(x = rating))+ 
+  geom_histogram(bins = 30)
+
+
+```
+
+## by intuitive complexity 
+```{r}
+complexity_data <- complexity_data %>% 
+  mutate(
+    complexity = case_when(
+      grepl("complex", stimulus) ~ "complex", 
+      grepl("simple", stimulus) ~ "simple"
+    )
+  )
+
+complexity_data %>% 
+  ggplot(aes(x = complexity, y = rating)) + 
+  geom_point(alpha = 0.1, 
+             position = position_jitter(width = 0.3)) + 
+   stat_summary(fun.data = "mean_cl_boot") 
+```
+
+## by item 
+first figure out action
+```{r}
+complexity_action <- complexity_data %>%
+  mutate(item_id_full = 
+             str_match(stimulus, "spore_stims/\\s*(.*?).gif")[,2], 
+         item_id_no_action = str_match(stimulus, "spore_stims/\\s*(.*?)..\\s*.gif")[,2],
+         action_type = str_sub(item_id_full, -1)) 
+
+action_summary <- complexity_action %>% 
+  group_by(action_type) %>% 
+  tidyboot::tidyboot_mean(rating) 
+
+action_summary %>% 
+ ggplot(aes(x = action_type, y = mean)) + 
+  geom_pointrange(aes(ymin = ci_lower, ymax = ci_upper))
+```
+
+## by complexity type 
+```{r}
+complexity_summary <- complexity_action %>% 
+  group_by(item_id_no_action) %>% 
+  tidyboot::tidyboot_mean(rating) %>% 
+  mutate(
+    complexity = case_when(
+      grepl("complex", item_id_no_action) ~ "complex", 
+      TRUE ~ "simple")
+  )
+
+complexity_summary %>% 
+  ggplot(aes(x = reorder(item_id_no_action, mean), y = mean, color = complexity)) + 
+  geom_pointrange(aes(ymin = ci_lower, ymax = ci_upper), 
+                  position = position_dodge(1.5)) + 
+   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+```
+
+# dishabituation effect 
+
+```{r}
+log_rt_deviant <- RT_data %>% 
+  filter(trial_type == "deviant") %>% 
+  group_by(item_id) %>% 
+  tidyboot::tidyboot_mean(log(rt)) %>% 
+  mutate(type = "log_rt", 
+    complexity = case_when(
+      grepl("complex", item_id) ~ "complex", 
+      TRUE ~ "simple")
+  ) 
+
+complexity_temp <- complexity_summary %>% 
+  mutate(type = "rating") %>% 
+  mutate(item_id = item_id_no_action) %>% 
+  select(-item_id_no_action)
+
+dishab_df <- bind_rows(log_rt_deviant, 
+                       complexity_temp)
+
+dishab_df 
+```
+
+## raw dishabitutaiton 
+
+```{r}
+dishab_df %>% 
+  ggplot(aes(x = reorder(item_id, mean), y = mean, 
+             color = complexity, 
+             shape = type)) + 
+  geom_pointrange(aes(ymin = ci_lower, ymax = ci_upper), 
+                  position = position_dodge(1.5)) + 
+   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  
+```
+
+## effect? 
+```{r}
+
+c_temp <- complexity_temp %>% 
+  select(item_id, complexity, mean) %>% 
+  rename(mean_rating = mean)
+
+log_rt_deviant %>% 
+  select(item_id, mean) %>% 
+  rename(log_mean_dishab = mean) %>% 
+  left_join(c_temp, by = "item_id") %>% 
+  ggplot(aes(x = mean_rating, y = log_mean_dishab, 
+             color = complexity)) + 
+  geom_point()
+```
+
+
+```{r}
+log_rt_deviant %>% 
+  filter(complexity == "complex") %>% 
+  select(item_id, mean) %>% 
+  rename(log_mean_dishab = mean) %>% 
+  left_join(c_temp, by = "item_id") %>% 
+  ggplot(aes(x = mean_rating, y = log_mean_dishab, 
+             color = complexity)) + 
+  geom_point() + 
+  geom_smooth(method = "lm")
+```
+
+```{r}
+log_rt_deviant %>% 
+  filter(complexity == "simple") %>% 
+  select(item_id, mean) %>% 
+  rename(log_mean_dishab = mean) %>% 
+  left_join(c_temp, by = "item_id") %>% 
+  ggplot(aes(x = mean_rating, y = log_mean_dishab, 
+             color = complexity)) + 
+  geom_point() + 
+  geom_smooth(method = "lm")
+```
+
+## by half 
+```{r}
+log_rt_deviant <- RT_data %>% 
+  filter(trial_type == "deviant") %>% 
+  group_by(item_id, half) %>% 
+  tidyboot::tidyboot_mean(log(rt)) %>% 
+  mutate(type = "log_rt", 
+    complexity = case_when(
+      grepl("complex", item_id) ~ "complex", 
+      TRUE ~ "simple")
+  ) 
+
+complexity_temp <- complexity_summary %>% 
+  mutate(type = "rating") %>% 
+  mutate(item_id = item_id_no_action) %>% 
+  select(-item_id_no_action)
+
+dishab_df <- bind_rows(log_rt_deviant, 
+                       complexity_temp)
+
+dishab_df 
+```
+
+```{r}
+c_temp <- complexity_temp %>% 
+  select(item_id, complexity, mean) %>% 
+  rename(mean_rating = mean)
+
+log_rt_deviant %>% 
+  select(item_id, mean, half) %>% 
+  rename(log_mean_dishab = mean) %>% 
+  left_join(c_temp, by = "item_id") %>% 
+  ggplot(aes(x = mean_rating, y = log_mean_dishab, 
+             color = complexity)) + 
+  geom_point() + 
+  facet_wrap(~half)
+```
+
+# Similarity redux 
+```{r}
+similarity_data %>% 
+  mutate(
+    stimulus_left_id =  str_match(stimulus_left, "spore_stims/\\s*(.*?)..\\s*.gif")[,2],
+    stimulus_right_id = str_match(stimulus_right, "spore_stims/\\s*(.*?)..\\s*.gif")[,2],
+   ) %>% 
+  group_by(stimulus_left_id, similarity) %>% 
+  tidyboot::tidyboot_mean(rating) %>% 
+  ggplot(aes(x = reorder(stimulus_left_id, mean), y = mean, 
+             color = similarity)) + 
+  geom_pointrange(aes(ymin = ci_lower, ymax = ci_upper)) + 
+   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  
+```
+
+
+

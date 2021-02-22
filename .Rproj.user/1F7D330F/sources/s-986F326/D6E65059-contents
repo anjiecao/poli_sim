@@ -22,8 +22,8 @@ Sequences are sequences of locations in a grid with four quadrants.
 
 
 ```{r}
-#sample_seq <- rep(1:4, 4)[shuffle(1:15)]
-sample_seq <- c(1,1,3,4,1,1,4,1,2,1,1,4)
+sample_seq <- rep(1:4, 4)[shuffle(1:15)]
+sample_seq
 ```
 
 # Learning model
@@ -63,7 +63,7 @@ p(x =k∣X ,)=─j−1+K (3)
 At every trial j, the posterior Dirichlet distribution of trial j − 1 becomes the new prior distribution. The new prior is updated using (2) and the probabilities estimates are computed using (3). When infants look away and a new sequence is played, the prior is set back to (1). This means that we assume that when infants start looking to a new sequence, they consider it as independent of the previous ones. Previous research in adults demonstrated the suitability of this assumption (24).
 
 ```{r}
-n <- 12
+n <- 15
 model <- tibble(trials = 0:n, 
                 bin1 = 0, 
                 bin2 = 0, 

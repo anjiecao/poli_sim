@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1614009195577.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "47D375ED",
+    "lastKnownWriteTime" : 1613767483,
+    "last_content_update" : 1613767483,
+    "path" : "~/Desktop/projects/looking_time/adult_analysis/02_visualization.Rmd",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "217,62",
+        "scrollLine" : "213"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

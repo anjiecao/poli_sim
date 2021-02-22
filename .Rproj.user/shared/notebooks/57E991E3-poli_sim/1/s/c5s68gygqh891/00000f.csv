@@ -1,0 +1,7 @@
+"0","model$surprisal <- NA"
+"0","for (i in 1:(n+1)) {"
+"0","  "
+"0","  p_lasttrial <- c(model$p1[i-1], model$p2[i-1], model$p3[i-1], model$p4[i-1])"
+"0","  model$surprisal[i] <- -log2( p_lasttrial[model$observed[i]]  )"
+"0","}"
+"0","model"

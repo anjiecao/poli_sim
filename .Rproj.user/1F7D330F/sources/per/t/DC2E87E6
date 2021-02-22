@@ -5,17 +5,17 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "1172151101",
+    "hash" : "259125491",
     "id" : "DC2E87E6",
-    "lastKnownWriteTime" : 1614009667,
-    "last_content_update" : 1614009682363,
+    "lastKnownWriteTime" : 1614011460,
+    "last_content_update" : 1614011460823,
     "path" : "~/Desktop/projects/poli_sim/poli_sim.Rmd",
     "project_path" : "poli_sim.Rmd",
     "properties" : {
-        "cursorPosition" : "65,7",
+        "cursorPosition" : "230,13",
         "docOutlineVisible" : "1",
         "last_setup_crc32" : "986F3265ac90772",
-        "scrollLine" : "64"
+        "scrollLine" : "207"
     },
     "read_only" : false,
     "read_only_alternatives" : [

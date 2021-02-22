@@ -201,7 +201,8 @@ $$
 ```{r}
 model$learning_progress <- NA_real_
 for (i in 1:(n+1)){
-  #i = 1 
+
+  i = 1 
   
   previous_trial_bin <- model %>% 
     filter(trials == i-1) %>% 
@@ -255,21 +256,24 @@ surprise_plot <- df.plot %>%
   ggplot(aes(x = trials, y = value)) + 
   geom_point() + 
   geom_line() + 
-  ylab("surprise")
+  ylab("surprise") + 
+   scale_x_continuous(breaks =seq(1,12,1))
 
 predictability_plot <- df.plot %>% 
   filter(measure == "predictability") %>% 
   ggplot(aes(x = trials, y = value)) + 
   geom_point() + 
   geom_line() + 
-  ylab("predictability")
+  ylab("predictability") + 
+  scale_x_continuous(breaks =seq(1,12,1))
 
 learning_progress_plot <- df.plot %>% 
   filter(measure == "learning_progress") %>% 
   ggplot(aes(x = trials, y = value)) + 
   geom_point() + 
   geom_line() + 
-  ylab("learning_progress")
+  ylab("learning_progress") + 
+  scale_x_continuous(breaks =seq(1,12,1))
 
 surprise_plot
 predictability_plot

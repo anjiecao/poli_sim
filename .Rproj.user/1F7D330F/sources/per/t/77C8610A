@@ -12,9 +12,9 @@
     "path" : null,
     "project_path" : null,
     "properties" : {
-        "cacheKey" : "985BD8CE",
+        "cacheKey" : "7FE9E433",
         "caption" : "trial_bin",
-        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=trial_bin&cache_key=985BD8CE",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=trial_bin&cache_key=7FE9E433",
         "displayedObservations" : "4",
         "environment" : "",
         "expression" : "trial_bin",

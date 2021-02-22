@@ -1,8 +1,2 @@
 "0","library(tidyverse)"
-"2","Warning messages:
-"
-"2","1: Unknown or uninitialised column: `surprisal`. 
-"
-"2","2: Unknown or uninitialised column: `observed`. 
-"
 "0","library(permute)"
